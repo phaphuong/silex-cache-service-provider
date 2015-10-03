@@ -12,8 +12,7 @@
 namespace Moust\Silex\Provider;
 
 use Pimple\Container;
-use Silex\Application;
-use Silex\Api\ServiceProviderInterface;
+use Pimple\ServiceProviderInterface;
 use Moust\Silex\Cache\CacheFactory;
 
 class CacheServiceProvider implements ServiceProviderInterface
@@ -68,7 +67,7 @@ class CacheServiceProvider implements ServiceProviderInterface
         $app['caches'] = function ($app) {
             $app['caches.options.initializer']();
 
-            $caches = new \Pimple();
+            $caches = new Container();
             foreach ($app['caches.options'] as $name => $options) {
                 if ($app['caches.default'] === $name) {
                     // we use shortcuts here in case the default has been overridden
@@ -77,9 +76,9 @@ class CacheServiceProvider implements ServiceProviderInterface
                     $config = $app['caches.config'][$name];
                 }
 
-                $caches[$name] = $caches->share(function ($caches) use ($app, $config) {
+                $caches[$name] = function ($caches) use ($app, $config) {
                     return $app['cache.factory']->getCache($config['driver'], $config);
-                });
+                };
             }
 
             return $caches;
@@ -88,7 +87,7 @@ class CacheServiceProvider implements ServiceProviderInterface
         $app['caches.config'] = function ($app) {
             $app['caches.options.initializer']();
 
-            $configs = new \Pimple();
+            $configs = new Container();
             foreach ($app['caches.options'] as $name => $options) {
                 $configs[$name] = $options;
             }
